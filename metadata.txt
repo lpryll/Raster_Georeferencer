@@ -1,0 +1,23 @@
+[general]
+name=Raster Georeferencer (GCP)
+qgisMinimumVersion=3.0
+qgisMaximumVersion=4.99
+description=Georeferences a raster image by matching user-picked points on it with entered known coordinates (GCPs).
+version=1.0.1
+author=LPRYLL
+email=alperyolal@gmail.com
+about=Loads a raster image, lets you pick any number of control points (GCPs) on it, enter each point's real-world coordinates, and georeferences the image using a GDAL-based transformation (linear, polynomial, or TPS). Compatible with QGIS 3 (Qt5/PyQt5) and QGIS 4 (Qt6/PyQt6).
+
+repository=https://github.com/lpryll/Raster_Georeferencer
+tracker=https://github.com/lpryll/Raster_Georeferencer/issues
+homepage=https://github.com/lpryll/Raster_Georeferencer
+
+tags=rectify,georeference,raster,coordinate
+category=Raster
+icon=icon.png
+experimental=False
+deprecated=False
+hasProcessingProvider=no
+
+changelog=
+  1.0.1 - Qt6 compatibility achieved.
