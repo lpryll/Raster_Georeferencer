@@ -54,7 +54,13 @@ compatible with both QGIS 3 (Qt5/PyQt5) and QGIS 4 (Qt6/PyQt6).
   automatically converted to RGB for the on-screen preview as well.
   This requires `numpy`, which ships with QGIS's own Python
   environment by default.
-- Both fixes only affect the on-screen preview - the final
+- Any alpha/transparency band is dropped from the on-screen preview
+  (it isn't needed there) and normal 8-bit imagery is no longer
+  auto-stretched. This avoids a bug where a constant-value alpha
+  band (e.g. a fully-opaque PNG, a common case) could be collapsed
+  to fully transparent by the auto-stretch, making the whole preview
+  appear blank.
+- All of the above only affect the on-screen preview - the final
   georeferenced output still preserves the original raster data
   (including its color table, for paletted sources) as-is.
 - The code goes through `qgis.PyQt` and centralizes all Qt5/Qt6 enum

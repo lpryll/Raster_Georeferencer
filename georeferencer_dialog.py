@@ -35,6 +35,7 @@ except ImportError:
 # GDAL color-interpretation constants (values are stable across GDAL
 # versions; getattr fallback covers older bindings that may not expose
 # the names directly).
+GCI_ALPHA = getattr(gdal, "GCI_AlphaBand", 6) if HAS_GDAL else 6
 GCI_PALETTE = getattr(gdal, "GCI_PaletteIndex", 2) if HAS_GDAL else 2
 GCI_CYAN = getattr(gdal, "GCI_CyanBand", 10) if HAS_GDAL else 10
 GCI_MAGENTA = getattr(gdal, "GCI_MagentaBand", 11) if HAS_GDAL else 11
@@ -276,6 +277,17 @@ class GeoreferencerDialog(QDialog):
             QApplication.restoreOverrideCursor()
 
     @staticmethod
+    def _color_band_indices(ds):
+        """1-indexed band numbers excluding any Alpha band - the preview
+        never needs transparency, and excluding it sidesteps auto-stretch
+        edge cases on constant-value alpha bands (see _load_raster)."""
+        indices = [
+            i + 1 for i in range(ds.RasterCount)
+            if ds.GetRasterBand(i + 1).GetColorInterpretation() != GCI_ALPHA
+        ]
+        return indices or list(range(1, ds.RasterCount + 1))
+
+    @staticmethod
     def _is_palette(ds):
         """Detects paletted/indexed rasters (PhotometricInterpretation
         'Palette'), where pixel values are color-table indices rather
@@ -365,7 +377,16 @@ class GeoreferencerDialog(QDialog):
             # PNG as if they were plain RGB(A) - convert to RGB properly.
             self._write_cmyk_preview(ds, target_w, target_h)
         else:
-            translate_kwargs = dict(format="PNG")
+            # Preview generation never needs an alpha/transparency band -
+            # dropping it up front avoids a subtle bug: auto min/max
+            # stretching (below) treats every band identically, and a
+            # constant-value alpha band (e.g. a fully-opaque image, which
+            # is the common case) has no valid min/max range to stretch,
+            # which can collapse the whole band to 0 (fully transparent)
+            # and make the preview appear completely blank.
+            color_bands = self._color_band_indices(ds)
+
+            translate_kwargs = dict(format="PNG", bandList=color_bands)
             if long_edge > PREVIEW_MAX_SIZE:
                 translate_kwargs.update(width=target_w, height=target_h, resampleAlg="average")
 
@@ -377,7 +398,11 @@ class GeoreferencerDialog(QDialog):
                 # the color table and produces wrong/negative-looking
                 # colors - expand through the color table to RGB instead.
                 translate_kwargs["rgbExpand"] = "rgb"
-            else:
+            elif ds.GetRasterBand(color_bands[0]).DataType != gdal.GDT_Byte:
+                # Only rasters with a non-Byte data type (16-bit, float,
+                # etc.) actually need an auto-stretch to a displayable
+                # 0-255 range; ordinary 8-bit imagery is left untouched
+                # so its preview colors match the source exactly.
                 translate_kwargs["scaleParams"] = [[]]
                 translate_kwargs["outputType"] = gdal.GDT_Byte
 
