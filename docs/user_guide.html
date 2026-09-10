@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Raster Georeferencer (GCP) - User Guide</title>
+<style>
+  :root {
+    --teal-dark: #1F4E45;
+    --teal: #2E6F63;
+    --orange: #DE2828;
+    --light-bg: #F2F6F5;
+    --text: #222222;
+    --muted: #666666;
+    --border: #CBD9D6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: #ffffff;
+    line-height: 1.55;
+  }
+  header {
+    background: var(--teal-dark);
+    border-bottom: 4px solid var(--orange);
+    padding: 28px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header .titles h1 {
+    color: #ffffff;
+    font-size: 26px;
+    margin: 0 0 6px 0;
+  }
+  header .titles p {
+    color: #ffffff;
+    font-size: 14px;
+    margin: 0;
+    opacity: 0.9;
+  }
+  header img {
+    width: 56px;
+    height: 56px;
+  }
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 28px 36px 60px 36px;
+  }
+  h2 {
+    color: var(--teal-dark);
+    font-size: 19px;
+    border-bottom: 2px solid var(--teal);
+    padding-bottom: 6px;
+    margin-top: 34px;
+  }
+  h2 .num {
+    color: var(--orange);
+    margin-right: 6px;
+  }
+  p { margin: 10px 0; font-size: 14.5px; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin-bottom: 6px; font-size: 14.5px; }
+  code {
+    background: var(--light-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--teal);
+    color: #ffffff;
+  }
+  tr:nth-child(even) td {
+    background: var(--light-bg);
+  }
+  .note {
+    background: var(--light-bg);
+    border-left: 4px solid var(--teal);
+    padding: 10px 14px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  footer {
+    max-width: 860px;
+    margin: 40px auto 0 auto;
+    padding: 14px 36px 24px 36px;
+    border-top: 1px solid #dddddd;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  a { color: var(--teal-dark); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="titles">
+    <h1>Raster Georeferencer (GCP)</h1>
+    <p>User Guide &mdash; QGIS 3 (Qt5) &amp; QGIS 4 (Qt6)</p>
+  </div>
+  <img src="../icon.png" alt="Plugin icon">
+</header>
+
+<main>
+
+<p>This plugin georeferences a raster image by matching points you pick on the image
+with their known real-world coordinates (ground control points, or GCPs). It works
+identically on QGIS 3 and QGIS 4.</p>
+
+<h2><span class="num">1.</span>Installation</h2>
+<ol>
+  <li>Copy the <b>raster_georeferencer</b> folder as-is into your QGIS plugins directory
+    (Windows: <code>%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\</code>; the
+    QGIS 4 profile path follows the same pattern), or simply use <b>Install from ZIP</b>
+    in the Plugin Manager.</li>
+  <li>Restart QGIS, then open <b>Plugins &gt; Manage and Install Plugins</b> and enable
+    <b>Raster Georeferencer (GCP)</b>.</li>
+  <li>Click the plugin's icon on the toolbar, or use
+    <b>Raster menu &gt; Raster Georeferencer</b>.</li>
+</ol>
+<p>A <b>Help</b> button in the plugin window opens this guide at any time.</p>
+
+<h2><span class="num">2.</span>Opening a Raster</h2>
+<p>There are two ways to load the image you want to georeference:</p>
+<ul>
+  <li><b>Open Raster...</b> &mdash; browse to a file on disk (TIFF, JPEG, PNG, IMG, BMP,
+    and other GDAL-supported formats).</li>
+  <li><b>From Loaded Layer...</b> &mdash; pick a raster that is already loaded in the
+    current QGIS project. Only file-based (GDAL) layers are listed; WMS/WMTS/XYZ layers
+    cannot be reopened this way. When you re-georeference a layer picked this way, its
+    <b>old coordinate information is fully discarded</b>: the original layer is removed
+    from the map and replaced by the new result under the same name, so you never end up
+    with two copies.</li>
+</ul>
+<p>Large images are automatically shown as a downscaled preview on screen for smooth
+panning and zooming. Every pixel coordinate you pick is still computed against the
+original, full-resolution image &mdash; the on-screen scaling never affects accuracy.</p>
+
+<h2><span class="num">3.</span>Picking Control Points (GCPs)</h2>
+<ol>
+  <li>Toggle <b>Add Point</b>, then click anywhere on the image with a known real-world
+    coordinate. Each click adds a numbered marker on the image and a new row in the
+    table on the right.</li>
+  <li>Add as many points as you need &mdash; there is no limit. More well-distributed
+    points generally produce a more accurate result.</li>
+  <li>For each row, fill in <b>X (Map)</b> and <b>Y (Map)</b> with that point's known
+    coordinate in your target CRS (both a dot and a comma are accepted as the decimal
+    separator).</li>
+  <li>Uncheck <b>Enabled</b> to temporarily exclude a point without deleting it, or
+    select a row and click <b>Delete Selected Point</b> to remove it entirely.</li>
+</ol>
+<p><b>Navigating the preview:</b> scroll the mouse wheel to zoom in/out &mdash; the view
+zooms toward whatever point the cursor is over, not the canvas centre. Click and drag
+with <b>Add Point</b> switched off to pan. Use <b>Fit to View</b> to reset the view.</p>
+
+<h2><span class="num">4.</span>Georeferencing Settings</h2>
+<ul>
+  <li><b>Target CRS</b> &mdash; the coordinate reference system your map coordinates
+    are in.</li>
+  <li><b>Transformation Type</b> &mdash; the mathematical model used to fit the image
+    to your points (see table below).</li>
+  <li><b>Resampling Method</b> &mdash; Nearest Neighbour, Bilinear, or Cubic; controls
+    how output pixel values are interpolated.</li>
+  <li><b>Output File</b> &mdash; where the georeferenced GeoTIFF is written. Defaults to
+    the source file name with a <code>_georef</code> suffix.</li>
+  <li><b>Add result to QGIS as a layer</b> &mdash; adds the finished raster to the map.
+    This is forced on (and the old layer is replaced) whenever the source came from
+    <b>From Loaded Layer...</b>.</li>
+</ul>
+
+<table>
+  <tr>
+    <th>Transformation</th>
+    <th>Minimum points</th>
+    <th>Typical use</th>
+  </tr>
+  <tr>
+    <td>Linear (1st order)</td>
+    <td>3</td>
+    <td>Simple shift / rotation / scale, small, flat images</td>
+  </tr>
+  <tr>
+    <td>Polynomial (2nd order)</td>
+    <td>6</td>
+    <td>Mild distortion across the image</td>
+  </tr>
+  <tr>
+    <td>Polynomial (3rd order)</td>
+    <td>10</td>
+    <td>Stronger, irregular distortion</td>
+  </tr>
+  <tr>
+    <td>Thin Plate Spline (TPS)</td>
+    <td>3</td>
+    <td>Locally-varying distortion; bends smoothly through every point</td>
+  </tr>
+</table>
+<p>More points than the minimum, spread evenly across the image, generally give a
+better fit for every transformation type.</p>
+
+<h2><span class="num">5.</span>Running Georeferencing</h2>
+<p>Click <b>Run Georeferencing</b>. The plugin builds an intermediate GCP-referenced
+dataset with GDAL Translate, then applies GDAL Warp to produce the final GeoTIFF.
+Defining new GCPs always discards any pre-existing georeferencing on the source, so old
+coordinate information can never leak into the result.</p>
+<p>If the chosen output path is the same file as the source (in-place
+re-georeferencing), the plugin writes to a temporary file first and swaps it into place
+once finished, so the source is never at risk of corruption mid-write.</p>
+
+<h2><span class="num">6.</span>Preview Rendering Notes</h2>
+<p>The following source-image cases are detected automatically and rendered correctly
+in the on-screen preview (they do not affect the final georeferenced output, which
+always preserves the original raster data):</p>
+<ul>
+  <li><b>Paletted / indexed rasters</b> (common for scanned topographic map sheets)
+    &mdash; expanded through their embedded color table instead of being shown as raw
+    index values.</li>
+  <li><b>CMYK-encoded TIFFs</b> (common for scanned/print-origin maps) &mdash; converted
+    to RGB instead of being shown as raw, inverted-looking channels.</li>
+  <li><b>Images with an alpha channel</b> &mdash; the alpha band is excluded from the
+    preview, avoiding a case where a constant-value alpha channel could render as fully
+    blank.</li>
+</ul>
+
+<h2><span class="num">7.</span>Troubleshooting</h2>
+<ul>
+  <li><b>&ldquo;This plugin is incompatible with this version of QGIS&rdquo;</b> &mdash;
+    make sure you installed the current package version; earlier packages were missing
+    the <code>qgisMaximumVersion</code> entry needed for QGIS 4.</li>
+  <li><b>A warning about GDAL not being found</b> &mdash; the plugin requires the
+    <code>osgeo.gdal</code> module, which ships with QGIS's own Python environment; this
+    normally only appears if the plugin is run outside QGIS.</li>
+  <li><b>&ldquo;No module named 'qgis'&rdquo; when running a file directly</b> &mdash;
+    the plugin must be loaded through QGIS itself (Plugin Manager), not executed as a
+    standalone script; the <code>qgis</code> package only exists inside QGIS's Python.</li>
+  <li><b>The selected transformation type is greyed out or rejected</b> &mdash; add more
+    control points; each transformation type has a minimum point requirement (see the
+    table above).</li>
+</ul>
+
+</main>
+
+<footer>
+  Compatible with QGIS 3 (Qt5/PyQt5) and QGIS 4 (Qt6/PyQt6) from a single codebase.
+</footer>
+
+</body>
+</html>
