@@ -5,7 +5,8 @@ compatible with both QGIS 3 (Qt5/PyQt5) and QGIS 4 (Qt6/PyQt6).
 
 ## Installation
 1. Copy this folder (`raster_georeferencer`) as-is into your QGIS
-   plugins folder:
+   plugins folder, or simply use **Install from ZIP** in the Plugin
+   Manager:
    - Windows: `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
      (on QGIS 4 the profile path follows the same pattern, typically
      under a `QGIS4` folder — check Settings > User Profiles for the
@@ -14,6 +15,9 @@ compatible with both QGIS 3 (Qt5/PyQt5) and QGIS 4 (Qt6/PyQt6).
    Plugin Manager.
 3. Click the icon that appears on the toolbar, or use
    Raster menu > Raster Georeferencer.
+4. Click **Help** inside the plugin window at any time to open the
+   full user guide (`docs/user_guide.html`, also available as a
+   standalone PDF).
 
 ## Usage
 1. Click **Open Raster** to pick a file, or **From Loaded Layer...**

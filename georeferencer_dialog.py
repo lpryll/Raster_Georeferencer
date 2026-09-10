@@ -2,7 +2,8 @@ import os
 import tempfile
 import traceback
 
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import QUrl
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
 from qgis.PyQt.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QSplitter, QWidget,
     QPushButton, QToolButton, QLabel, QFileDialog, QTableWidget,
@@ -100,9 +101,11 @@ class GeoreferencerDialog(QDialog):
         self.btn_open_loaded = QPushButton("From Loaded Layer...")
         self.lbl_raster_path = QLabel("No raster selected yet.")
         self.lbl_raster_path.setStyleSheet("color: gray;")
+        self.btn_help = QPushButton("Help")
         top_row.addWidget(self.btn_open_raster)
         top_row.addWidget(self.btn_open_loaded)
         top_row.addWidget(self.lbl_raster_path, 1)
+        top_row.addWidget(self.btn_help)
         main_layout.addLayout(top_row)
 
         splitter = QSplitter(C.ORIENT_HORIZONTAL)
@@ -194,6 +197,7 @@ class GeoreferencerDialog(QDialog):
     def _connect_signals(self):
         self.btn_open_raster.clicked.connect(self.open_raster)
         self.btn_open_loaded.clicked.connect(self.open_from_loaded_layer)
+        self.btn_help.clicked.connect(self.open_help)
         self.btn_pick_mode.toggled.connect(self.canvas.set_pick_mode)
         self.btn_fit.clicked.connect(self.canvas.fit_to_view)
         self.canvas.pointAdded.connect(self.on_point_added)
@@ -204,6 +208,16 @@ class GeoreferencerDialog(QDialog):
         self.btn_run.clicked.connect(self.run_georeference)
 
     # ================================================= Opening a raster ====
+    def open_help(self):
+        help_path = os.path.join(os.path.dirname(__file__), "docs", "user_guide.html")
+        if os.path.exists(help_path):
+            QDesktopServices.openUrl(QUrl.fromLocalFile(help_path))
+        else:
+            QMessageBox.information(
+                self, "Help",
+                "The help file could not be found:\n%s" % help_path
+            )
+
     def open_raster(self):
         path, _filter = QFileDialog.getOpenFileName(
             self, "Select Raster File", "",
