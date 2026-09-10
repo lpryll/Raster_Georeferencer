@@ -20,5 +20,5 @@ deprecated=False
 hasProcessingProvider=no
 
 changelog=
-  1.0.2 - Fixed on-screen preview generation for PNG/TIFF sources with an alpha channel, palette (indexed) color tables, or CMYK bands, which could previously render as blank, inverted, or negative-colored.
+  1.0.2 - Fixed on-screen preview generation for PNG/TIFF sources with an alpha channel, palette (indexed) color tables, or CMYK bands, which could previously render as blank, inverted, or negative-colored. Thanks to RajMohan Sijakhwa for warning me.
   1.0.1 - Qt6 compatibility achieved.
