@@ -12,6 +12,9 @@ than a literal "Qt.LeftButton"-style attribute access so that static
 Qt6-compatibility scanners - which flag any literal unscoped enum
 reference in the file, including inside an except branch that never
 executes under Qt6 - do not report it as an issue.
+
+All Qt bindings are imported exclusively through qgis.PyQt, as
+required for QGIS plugins - this module only runs inside QGIS itself.
 """
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QPainter
@@ -57,6 +60,11 @@ DRAG_SCROLL_HAND = _enum(QGraphicsView.DragMode, "ScrollHandDrag", QGraphicsView
 
 # --- QGraphicsView.ViewportAnchor (zoom centered on the mouse cursor) ---
 ANCHOR_UNDER_MOUSE = _enum(QGraphicsView.ViewportAnchor, "AnchorUnderMouse", QGraphicsView, "AnchorUnderMouse")
+
+# --- QGraphicsView.ViewportUpdateMode (redraw the whole viewport on every
+# scene change, so newly-added markers never leave stale/invisible
+# neighbours behind - see PointPickCanvas) ---
+VIEWPORT_UPDATE_FULL = _enum(QGraphicsView.ViewportUpdateMode, "FullViewportUpdate", QGraphicsView, "FullViewportUpdate")
 
 # --- QHeaderView.ResizeMode ---
 HEADER_STRETCH = _enum(QHeaderView.ResizeMode, "Stretch", QHeaderView, "Stretch")

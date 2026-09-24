@@ -23,6 +23,13 @@ class PointPickCanvas(QGraphicsView):
         self.setRenderHint(C.RENDER_ANTIALIAS, True)
         self.setRenderHint(C.RENDER_SMOOTH_PIXMAP, True)
         self.setTransformationAnchor(C.ANCHOR_UNDER_MOUSE)
+        # Default (minimal) viewport updates can leave a previously-added
+        # marker looking invisible when a new one is added nearby, since
+        # Qt only repaints the changed sub-region and antialiased item
+        # edges can fall just outside what it thinks needs redrawing.
+        # Redrawing the full viewport on every scene change is cheap here
+        # (a handful of small markers) and avoids that stale-paint issue.
+        self.setViewportUpdateMode(C.VIEWPORT_UPDATE_FULL)
         self._pixmap_item = None
         self._markers = {}  # index -> (ellipse_item, text_item)
         self._pick_mode = False
