@@ -31,6 +31,7 @@ def _enum(scoped_owner, scoped_name, legacy_owner, legacy_name):
 # --- Mouse buttons ---
 MOUSE_LEFT = _enum(Qt.MouseButton, "LeftButton", Qt, "LeftButton")
 MOUSE_RIGHT = _enum(Qt.MouseButton, "RightButton", Qt, "RightButton")
+MOUSE_MIDDLE = _enum(Qt.MouseButton, "MiddleButton", Qt, "MiddleButton")
 
 # --- Keyboard ---
 KEY_DELETE = _enum(Qt.Key, "Key_Delete", Qt, "Key_Delete")
@@ -50,6 +51,7 @@ ASPECT_KEEP = _enum(Qt.AspectRatioMode, "KeepAspectRatio", Qt, "KeepAspectRatio"
 # --- Cursor ---
 CURSOR_CROSS = _enum(Qt.CursorShape, "CrossCursor", Qt, "CrossCursor")
 CURSOR_WAIT = _enum(Qt.CursorShape, "WaitCursor", Qt, "WaitCursor")
+CURSOR_CLOSED_HAND = _enum(Qt.CursorShape, "ClosedHandCursor", Qt, "ClosedHandCursor")
 
 # --- Orientation ---
 ORIENT_HORIZONTAL = _enum(Qt.Orientation, "Horizontal", Qt, "Horizontal")

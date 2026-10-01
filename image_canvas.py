@@ -34,6 +34,9 @@ class PointPickCanvas(QGraphicsView):
         self._markers = {}  # index -> (ellipse_item, text_item)
         self._pick_mode = False
         self._point_radius = 5
+        self._middle_panning = False
+        self._pan_last_pos = None
+        self._pick_mode_before_pan = False
 
     # ------------------------------------------------------------ Loading --
     def load_preview(self, preview_path):
@@ -42,7 +45,16 @@ class PointPickCanvas(QGraphicsView):
         pixmap = QPixmap(preview_path)
         self._pixmap_item = self._scene.addPixmap(pixmap)
         self._pixmap_item.setTransformationMode(C.SMOOTH_TRANSFORM)
-        self._scene.setSceneRect(self._pixmap_item.boundingRect())
+        rect = self._pixmap_item.boundingRect()
+        # Give the scene room well beyond the image itself. QGraphicsView
+        # clamps scrolling to stay within sceneRect, so with the scene
+        # rect equal to the image bounds, zooming toward a point near an
+        # edge or corner has nowhere left to scroll to keep that point
+        # under the cursor - the zoom-to-cursor behaviour breaks down
+        # exactly there. Padding the scene rect fixes it everywhere.
+        margin_x = max(rect.width(), 1)
+        margin_y = max(rect.height(), 1)
+        self._scene.setSceneRect(rect.adjusted(-margin_x, -margin_y, margin_x, margin_y))
         self.fit_to_view()
 
     def fit_to_view(self):
@@ -60,12 +72,48 @@ class PointPickCanvas(QGraphicsView):
             self.unsetCursor()
 
     def mousePressEvent(self, event):
+        if event.button() == C.MOUSE_MIDDLE:
+            # Middle-button drag always pans, regardless of Add Point
+            # state, so the user can pan while zoomed in without leaving
+            # point-picking mode. Whatever mode was active resumes on
+            # release (see mouseReleaseEvent).
+            self._middle_panning = True
+            self._pan_last_pos = event.pos()
+            self._pick_mode_before_pan = self._pick_mode
+            self.set_pick_mode(False)
+            self.setCursor(C.CURSOR_CLOSED_HAND)
+            event.accept()
+            return
         if self._pick_mode and event.button() == C.MOUSE_LEFT and self._pixmap_item is not None:
             scene_pos = self.mapToScene(event.pos())
             if self._pixmap_item.boundingRect().contains(scene_pos):
                 self.pointAdded.emit(scene_pos.x(), scene_pos.y())
                 return
         super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._middle_panning and self._pan_last_pos is not None:
+            delta = event.pos() - self._pan_last_pos
+            self._pan_last_pos = event.pos()
+            h_bar = self.horizontalScrollBar()
+            v_bar = self.verticalScrollBar()
+            h_bar.setValue(h_bar.value() - delta.x())
+            v_bar.setValue(v_bar.value() - delta.y())
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == C.MOUSE_MIDDLE and self._middle_panning:
+            self._middle_panning = False
+            self._pan_last_pos = None
+            self.unsetCursor()
+            # Resume whichever mode (Add Point or plain pan) was active
+            # before the middle-button pan started.
+            self.set_pick_mode(self._pick_mode_before_pan)
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
 
     def wheelEvent(self, event):
         factor = 1.25 if event.angleDelta().y() > 0 else 0.8
